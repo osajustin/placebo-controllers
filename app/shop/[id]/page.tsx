@@ -156,14 +156,13 @@ function classNames(...classes: unknown[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function ProductPage({ params }: { params: { id: string } }) {
-
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
 // Always define hooks before any conditional return
 const [selectedColor, setSelectedColor] = useState(null); // Initialize to null
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 // Find the product
-const product = products.find((p) => p.id === params.id);
+const product = products.find(async (p) => p.id === (await params).id);
 
 // If product is not found, return early
 if (!product) {
@@ -330,30 +329,38 @@ if (!selectedColor && product.colors.length > 0) {
             <form className="mt-10">
               {/* Colors */}
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Color</h3>
-                <fieldset className="mt-4">
-                <RadioGroup value={selectedColor} onChange={setSelectedColor} className="flex items-center space-x-3">
-                    {product.colors.map((color, index) => (
-                        <Radio
-                        key={color.name || index} // Use index as fallback for the key
-                        value={color}
-                        className={classNames(
-                            color.selectedClass || 'ring-gray-300', // Fallback class if selectedClass is undefined
-                            'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none'
-                        )}
-                        >
-                        <span
-                            className={classNames(
-                            color.class || 'bg-gray-200', // Fallback class if class is undefined
-                            'h-8 w-8 rounded-full border border-black/10'
-                            )}
-                            aria-hidden="true"
-                        />
-                        </Radio>
-                    ))}
-                    </RadioGroup>
-                </fieldset>
-              </div>
+  <h3 className="text-sm font-medium text-gray-900">Color</h3>
+  <fieldset className="mt-4">
+    <RadioGroup
+      value={selectedColor}
+      onChange={setSelectedColor}
+      className="flex items-center space-x-3"
+    >
+      {Array.isArray(product.colors) &&
+        product.colors.map((color, index) => (
+          // Render only valid color objects
+          color && typeof color === 'object' && !Array.isArray(color) ? (
+            <Radio
+              key={color.name || index} // Use index if name is unavailable
+              value={color}
+              className={classNames(
+                color.selectedClass || 'ring-gray-300', // Default fallback for selectedClass
+                'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none'
+              )}
+            >
+              <span
+                className={classNames(
+                  color.class || 'bg-gray-200', // Default fallback for class
+                  'h-8 w-8 rounded-full border border-black/10'
+                )}
+                aria-hidden="true"
+              />
+            </Radio>
+          ) : null // Skip invalid color objects
+        ))}
+    </RadioGroup>
+  </fieldset>
+</div>
 
               <button
                 type="submit"
