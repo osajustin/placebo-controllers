@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { SetStateAction, useState } from 'react'
 import { Bars3Icon, StarIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import { Dialog, DialogPanel, Radio, RadioGroup } from '@headlessui/react'
 
@@ -152,20 +152,28 @@ const products = [
   },
 ]
 
-function classNames(...classes: string[]) {
+function classNames(...classes: unknown[]) {
   return classes.filter(Boolean).join(' ')
 }
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-  const product = products.find((p) => p.id === params.id)
 
-  if (!product) {
-    return <p>Product not found</p>
-  }
+// Always define hooks before any conditional return
+const [selectedColor, setSelectedColor] = useState(null); // Initialize to null
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+// Find the product
+const product = products.find((p) => p.id === params.id);
 
+// If product is not found, return early
+if (!product) {
+  return <p>Product not found</p>;
+}
+
+// Set default selected color after ensuring the product exists
+if (!selectedColor && product.colors.length > 0) {
+  setSelectedColor(product.colors[0] as unknown as SetStateAction<null>);
+}
   return (
     <div className="bg-white">
         <header className="absolute inset-x-0 top-0 z-50">
@@ -324,23 +332,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               <div>
                 <h3 className="text-sm font-medium text-gray-900">Color</h3>
                 <fieldset className="mt-4">
-                  <RadioGroup value={selectedColor} onChange={setSelectedColor} className="flex items-center space-x-3">
-                    {product.colors.map((color) => (
-                      <Radio
-                        key={color.name}
+                <RadioGroup value={selectedColor} onChange={setSelectedColor} className="flex items-center space-x-3">
+                    {product.colors.map((color, index) => (
+                        <Radio
+                        key={color.name || index} // Use index as fallback for the key
                         value={color}
                         className={classNames(
-                          color.selectedClass,
-                          'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none'
+                            color.selectedClass || 'ring-gray-300', // Fallback class if selectedClass is undefined
+                            'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none'
                         )}
-                      >
+                        >
                         <span
-                          className={classNames(color.class, 'h-8 w-8 rounded-full border border-black/10')}
-                          aria-hidden="true"
+                            className={classNames(
+                            color.class || 'bg-gray-200', // Fallback class if class is undefined
+                            'h-8 w-8 rounded-full border border-black/10'
+                            )}
+                            aria-hidden="true"
                         />
-                      </Radio>
+                        </Radio>
                     ))}
-                  </RadioGroup>
+                    </RadioGroup>
                 </fieldset>
               </div>
 
