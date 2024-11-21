@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
-import { Bars3Icon, MagnifyingGlassCircleIcon, MagnifyingGlassIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const navigation = [
     { name: 'Home', href: '/' },
